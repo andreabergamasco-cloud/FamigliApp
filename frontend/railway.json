@@ -1,8 +1,8 @@
 {
   "build": {
-    "buildCommand": "echo 'static site'"
+    "buildCommand": "echo 'ready'"
   },
   "deploy": {
-    "startCommand": "python3 -m http.server $PORT"
+    "startCommand": "busybox httpd -f -p $PORT -h ."
   }
 }
