@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FamigliApp</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+<header>
+  <div class="header-content">
+    <div class="header-utente-wrapper">
+      <div class="avatar" id="avatar-wrapper" onclick="toggleAvatarMenu()" style="cursor:pointer" title="Menu utente">
+        <svg id="avatar-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
+        </svg>
+        <img id="avatar-img" src="" style="display:none; width:40px; height:40px; border-radius:50%; object-fit:cover;">
+        <input type="file" id="input-foto" accept="image/*" style="display:none" onchange="uploadFoto(this)">
+      </div>
+      <div id="avatar-menu" class="avatar-menu nascosta">
+        <button class="avatar-menu-item" onclick="document.getElementById('input-foto').click(); chiudiAvatarMenu()">
+          📷 Cambia foto
+        </button>
+        <button class="avatar-menu-item" onclick="apriModalFamiglia(); chiudiAvatarMenu()">
+          👨‍👩‍👧 Gestisci famiglia
+        </button>
+        <button class="avatar-menu-item danger" onclick="logout()">
+          🚪 Logout
+        </button>
+      </div>
+      <div>
+        <p class="header-date" id="data-oggi"></p>
+        <p class="header-utente" id="nome-utente"></p>
+      </div>
+    </div>
+
+    <div class="header-brand">
+      <img src="/frontend/Logo/Logo.png" alt="FamigliApp" class="brand-logo">
+      <span id="nome-famiglia" class="header-famiglia">FamigliApp</span>
+    </div>
+
+    <div class="header-actions">
+      <button class="btn-add" onclick="apriModal('scadenza')">+ Aggiungi</button>
+    </div>
+  </div>
+</header>
+
+    <nav>
+      <button class="nav-btn active" onclick="mostraSezione('dashboard')">Home</button>
+      <button class="nav-btn" onclick="mostraSezione('scadenze')">Scadenze</button>
+      <button class="nav-btn" onclick="mostraSezione('spese')">Spese</button>
+      <button class="nav-btn" onclick="mostraSezione('animali')">Animali</button>
+      <button class="nav-btn" onclick="mostraSezione('calendario')">Calendario</button>
+    </nav>
+
+    <main>
+      <!-- DASHBOARD -->
+      <section id="dashboard" class="sezione">
+        <h2>In scadenza</h2>
+        <div id="lista-scadenze-dashboard"></div>
+
+        <h2 style="margin-top:2rem">Spese del mese</h2>
+        <div class="stat-grid" id="stats-spese"></div>
+      </section>
+
+      <!-- SCADENZE -->
+      <section id="scadenze" class="sezione nascosta">
+        <div class="sezione-header">
+          <h2>Tutte le scadenze</h2>
+          <button class="btn-add" onclick="apriModal('scadenza')">+ Nuova</button>
+        </div>
+        <div id="lista-scadenze-completa"></div>
+      </section>
+
+      <!-- SPESE -->
+      <section id="spese" class="sezione nascosta">
+        <div class="sezione-header">
+          <h2>Spese</h2>
+          <button class="btn-add" onclick="apriModal('spesa')">+ Nuova</button>
+        </div>
+        <div id="lista-spese"></div>
+      </section>
+
+      <!-- ANIMALI -->
+      <section id="animali" class="sezione nascosta">
+        <div class="sezione-header">
+          <h2>I miei animali</h2>
+          <button class="btn-add" onclick="apriModal('animale')">+ Aggiungi</button>
+        </div>
+        <div id="lista-animali"></div>
+      </section>
+
+      <!-- CALENDARIO -->
+    <section id="calendario" class="sezione nascosta">
+      <div class="sezione-header">
+        <h2>Calendario</h2>
+        <button class="btn-add" onclick="apriModal('appuntamento')">+ Nuovo</button>
+      </div>
+      <div class="calendario-nav">
+        <button class="cal-nav-btn" onclick="cambaMese(-1)">&#8592;</button>
+        <span id="cal-titolo-mese"></span>
+        <button class="cal-nav-btn" onclick="cambaMese(1)">&#8594;</button>
+      </div>
+      <div class="cal-legenda">
+        <span class="cal-leg-item"><span class="cal-leg-dot" style="background:var(--accent)"></span>Scadenze</span>
+        <span class="cal-leg-item"><span class="cal-leg-dot" style="background:var(--warning)"></span>Spese</span>
+        <span class="cal-leg-item"><span class="cal-leg-dot" style="background:#a78bfa"></span>Appuntamenti</span>
+      </div>
+      <div id="cal-griglia" class="cal-griglia"></div>
+      <div id="cal-dettaglio" class="cal-dettaglio nascosta">
+        <div class="cal-dettaglio-header">
+          <h3 id="cal-dettaglio-titolo"></h3>
+          <button onclick="document.getElementById('cal-dettaglio').classList.add('nascosta')">✕</button>
+        </div>
+        <div id="cal-dettaglio-lista"></div>
+      </div>
+    </section>
+
+    <h2 style="margin-top:2rem">Riepilogo</h2>
+    <div class="dashboard-bottom">
+      <div class="dashboard-grafico">
+        <p class="dashboard-sottotitolo">Spese per categoria</p>
+        <div class="chart-wrapper">
+          <canvas id="chart-categorie"></canvas>
+          <div id="chart-legenda" class="chart-legenda"></div>
+        </div>
+      </div>
+      <div class="dashboard-prossimi">
+        <p class="dashboard-sottotitolo">Prossimi 7 giorni</p>
+        <div id="lista-prossimi-7"></div>
+      </div>
+    </div>
+    </main>
+  </div>
+
+<!-- MODAL -->
+  <div id="modal-overlay" class="modal-overlay nascosta">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modal-titolo">Nuova scadenza</h3>
+        <button id="btn-chiudi-modal">✕</button>
+      </div>
+      <div id="modal-body"></div>
+    </div>
+  </div>
+  
+  <!-- MODAL FAMIGLIA -->
+  <div id="modal-famiglia-overlay" class="modal-overlay nascosta">
+    <div class="modal" style="max-width:480px; border-radius: var(--radius);">
+      <div class="modal-header">
+        <h3 id="modal-famiglia-titolo">Famiglia</h3>
+        <button id="btn-chiudi-famiglia">X</button>
+      </div>
+      <div id="modal-famiglia-body"></div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</body>
+</html>

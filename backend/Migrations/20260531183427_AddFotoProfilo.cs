@@ -1,0 +1,41 @@
+﻿using Microsoft.EntityFrameworkCore.Migrations;
+
+#nullable disable
+
+namespace backend.Migrations
+{
+    /// <inheritdoc />
+    public partial class AddFotoProfilo : Migration
+    {
+        /// <inheritdoc />
+        protected override void Up(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.DropForeignKey(
+                name: "FK_Utenti_Famiglie_IdFamiglia",
+                table: "Utenti");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Utenti_Famiglie_IdFamiglia",
+                table: "Utenti",
+                column: "IdFamiglia",
+                principalTable: "Famiglie",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
+        }
+
+        /// <inheritdoc />
+        protected override void Down(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.DropForeignKey(
+                name: "FK_Utenti_Famiglie_IdFamiglia",
+                table: "Utenti");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Utenti_Famiglie_IdFamiglia",
+                table: "Utenti",
+                column: "IdFamiglia",
+                principalTable: "Famiglie",
+                principalColumn: "Id");
+        }
+    }
+}

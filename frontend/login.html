@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FamigliApp — Accedi</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="login-body">
+
+<div class="login-container">
+  <div class="login-logo-area">
+    <img src="/frontend/Logo/Logo.png" alt="FamigliApp" style="width:120px; height:120px; object-fit:contain; margin-bottom:10px; border-radius:8px; mix-blend-mode: screen;">
+    <h1>FamigliApp</h1>
+    <p>Gestisci la tua casa in un unico posto</p>
+  </div>
+
+  <div class="login-tabs">
+    <button class="login-tab active" id="tab-login" onclick="switchTab('login')">Accedi</button>
+    <button class="login-tab" id="tab-registrati" onclick="switchTab('registrati')">Registrati</button>
+  </div>
+
+  <div class="login-form-area">
+
+    <!-- LOGIN -->
+    <div id="panel-login" class="login-panel active">
+      <div id="alert-login" class="login-alert"></div>
+
+      <div class="login-form-group">
+        <label>Email</label>
+        <input id="login-email" type="email" placeholder="mario@email.com">
+        <p class="login-msg-errore" id="err-login-email">Inserisci un'email valida</p>
+      </div>
+
+      <div class="login-form-group">
+        <label>Password</label>
+        <input id="login-password" type="password" placeholder="••••••••">
+        <p class="login-msg-errore" id="err-login-password">Inserisci la password</p>
+      </div>
+
+      <button class="login-btn-submit" id="btn-login" onclick="login()">Accedi</button>
+
+      <div class="login-footer-link">
+        Non hai un account? <a onclick="switchTab('registrati')">Registrati</a>
+      </div>
+    </div>
+
+    <!-- REGISTRAZIONE -->
+    <div id="panel-registrati" class="login-panel">
+  <div id="alert-reg" class="login-alert"></div>
+
+  <div class="login-form-group">
+    <label>Nome</label>
+    <input id="reg-nome" type="text" placeholder="Mario">
+    <p class="login-msg-errore" id="err-reg-nome">Inserisci il tuo nome</p>
+  </div>
+
+  <div class="login-form-group">
+    <label>Email</label>
+    <input id="reg-email" type="email" placeholder="mario@email.com">
+    <p class="login-msg-errore" id="err-reg-email">Inserisci un'email valida</p>
+  </div>
+
+  <div class="login-form-group">
+    <label>Password</label>
+    <input id="reg-password" type="password" placeholder="Min. 6 caratteri">
+    <p class="login-msg-errore" id="err-reg-password">La password deve avere almeno 6 caratteri</p>
+  </div>
+
+  <div class="login-form-group">
+    <label>Conferma password</label>
+    <input id="reg-conferma" type="password" placeholder="Ripeti la password">
+    <p class="login-msg-errore" id="err-reg-conferma">Le password non coincidono</p>
+  </div>
+
+  <!-- Scelta famiglia -->
+  <div style="display:flex;gap:8px;margin-bottom:14px">
+    <button type="button" class="login-tab-famiglia active" id="btn-crea-fam" onclick="sceltaFamiglia('crea')">🏠 Crea famiglia</button>
+    <button type="button" class="login-tab-famiglia" id="btn-join-fam" onclick="sceltaFamiglia('join')">🔗 Unisciti</button>
+  </div>
+
+  <div id="panel-crea-fam" class="login-form-group">
+    <label>Cognome famiglia</label>
+    <input id="reg-cognome" type="text" placeholder="Es. Rossi">
+    <p class="login-msg-errore" id="err-reg-cognome">Inserisci il cognome della famiglia</p>
+  </div>
+
+  <div id="panel-join-fam" class="login-form-group" style="display:none">
+    <label>Codice invito</label>
+    <input id="reg-codice" type="text" placeholder="Es. AB3K9PQR" style="text-transform:uppercase;letter-spacing:3px">
+    <p class="login-msg-errore" id="err-reg-codice">Inserisci il codice invito</p>
+  </div>
+
+  <button class="login-btn-submit" id="btn-reg" onclick="registrati()">Crea account</button>
+
+  <div class="login-footer-link">
+    Hai già un account? <a onclick="switchTab('login')">Accedi</a>
+  </div>
+</div>
+
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+const API = 'http://localhost:5271/api';
+
+// Leggi codice invito dall'URL
+const urlParams = new URLSearchParams(window.location.search);
+const codiceInvito = urlParams.get('join');
+
+document.addEventListener('DOMContentLoaded', () => {
+  if (codiceInvito) {
+    switchTab('registrati');
+    sceltaFamiglia('join');
+    document.getElementById('reg-codice').value = codiceInvito;
+    document.getElementById('panel-registrati').insertAdjacentHTML('afterbegin', `
+      <div style="background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.2);border-radius:10px;padding:12px 14px;margin-bottom:16px;font-size:13px;color:var(--accent)">
+        🎉 Sei stato invitato! Registrati per unirti alla famiglia.
+      </div>
+    `);
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      if (document.getElementById('panel-login').classList.contains('active')) login();
+      else registrati();
+    }
+  });
+});
+
+function sceltaFamiglia(tipo) {
+  document.getElementById('panel-crea-fam').style.display = tipo === 'crea' ? 'block' : 'none';
+  document.getElementById('panel-join-fam').style.display = tipo === 'join' ? 'block' : 'none';
+  document.getElementById('btn-crea-fam').classList.toggle('active', tipo === 'crea');
+  document.getElementById('btn-join-fam').classList.toggle('active', tipo === 'join');
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.login-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(`panel-${tab}`).classList.add('active');
+  document.getElementById(`tab-${tab}`).classList.add('active');
+  nascondAlert();
+}
+
+function mostraAlert(id, tipo, messaggio) {
+  if (tipo === 'error') {
+    Swal.fire({ icon: 'error', title: 'Errore', text: messaggio, confirmButtonText: 'Ok' });
+  } else {
+    Swal.fire({ icon: 'success', title: 'Fatto!', text: messaggio, timer: 1500, showConfirmButton: false });
+  }
+}
+
+function nascondAlert() {
+  document.querySelectorAll('.login-alert').forEach(a => a.classList.remove('visibile'));
+}
+
+function mostraErrore(id, mostra) {
+  const el = document.getElementById(id);
+  const input = el.previousElementSibling;
+  el.classList.toggle('visibile', mostra);
+  input.classList.toggle('errore', mostra);
+}
+
+function validaEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+async function login() {
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+
+  let valido = true;
+  if (!validaEmail(email)) { mostraErrore('err-login-email', true); valido = false; }
+  else mostraErrore('err-login-email', false);
+  if (!password) { mostraErrore('err-login-password', true); valido = false; }
+  else mostraErrore('err-login-password', false);
+  if (!valido) return;
+
+  const btn = document.getElementById('btn-login');
+  btn.disabled = true;
+  btn.textContent = 'Accesso in corso...';
+
+  try {
+    const res = await fetch(`${API}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('nome', data.nome);
+      localStorage.setItem('idFamiglia', data.idFamiglia);
+      localStorage.setItem('idUtente', data.id);
+      localStorage.setItem('fotoProfilo', data.fotoProfilo ?? '');
+      mostraAlert('alert-login', 'success', 'Accesso effettuato! Reindirizzamento...');
+      setTimeout(() => window.location.href = 'index.html', 1000);
+    } else {
+      mostraAlert('alert-login', 'error', 'Email o password non corretti');
+    }
+  } catch {
+    mostraAlert('alert-login', 'error', 'Impossibile contattare il server');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Accedi';
+  }
+}
+
+async function registrati() {
+  const nome = document.getElementById('reg-nome').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const password = document.getElementById('reg-password').value;
+  const conferma = document.getElementById('reg-conferma').value;
+  const isJoin = document.getElementById('btn-join-fam').classList.contains('active');
+
+  let valido = true;
+  if (!nome) { mostraErrore('err-reg-nome', true); valido = false; }
+  else mostraErrore('err-reg-nome', false);
+  if (!validaEmail(email)) { mostraErrore('err-reg-email', true); valido = false; }
+  else mostraErrore('err-reg-email', false);
+  if (password.length < 6) { mostraErrore('err-reg-password', true); valido = false; }
+  else mostraErrore('err-reg-password', false);
+  if (password !== conferma) { mostraErrore('err-reg-conferma', true); valido = false; }
+  else mostraErrore('err-reg-conferma', false);
+
+  if (isJoin) {
+    const codice = document.getElementById('reg-codice').value.trim();
+    if (!codice) { mostraErrore('err-reg-codice', true); valido = false; }
+    else mostraErrore('err-reg-codice', false);
+  } else {
+    const cognome = document.getElementById('reg-cognome').value.trim();
+    if (!cognome) { mostraErrore('err-reg-cognome', true); valido = false; }
+    else mostraErrore('err-reg-cognome', false);
+  }
+
+  if (!valido) return;
+
+  const btn = document.getElementById('btn-reg');
+  btn.disabled = true;
+  btn.textContent = 'Creazione account...';
+
+  try {
+    let res;
+    if (isJoin) {
+      const codice = document.getElementById('reg-codice').value.trim().toUpperCase();
+      res = await fetch(`${API}/auth/register/join`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nome, email, password, codiceFamiglia: codice, dataNascita: '2000-01-01' })
+      });
+    } else {
+      const cognome = document.getElementById('reg-cognome').value.trim();
+      res = await fetch(`${API}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nome, cognome, email, password, dataNascita: '2000-01-01' })
+      });
+    }
+
+    if (res.ok) {
+      mostraAlert('alert-reg', 'success', 'Account creato! Ora puoi accedere.');
+      setTimeout(() => switchTab('login'), 1500);
+    } else {
+      const err = await res.json();
+      mostraAlert('alert-reg', 'error', err.message || 'Errore durante la registrazione');
+    }
+  } catch {
+    mostraAlert('alert-reg', 'error', 'Impossibile contattare il server');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Crea account';
+  }
+
+
+    try {
+      let res;
+      if (codiceInvito) {
+        // Registrazione con codice invito
+        res = await fetch(`${API}/auth/register/join`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nome, email, password, codiceFamiglia: codiceInvito, dataNascita: '2000-01-01' })
+        });
+      } else {
+        // Registrazione normale — serve cognome famiglia
+        res = await fetch(`${API}/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nome, cognome: nome, email, password, dataNascita: '2000-01-01' })
+        });
+      }
+
+      if (res.ok) {
+        mostraAlert('alert-reg', 'success', codiceInvito ? 'Account creato! Ora puoi accedere.' : 'Account creato! Usa il codice famiglia per invitare altri.');
+        setTimeout(() => switchTab('login'), 1500);
+      } else {
+        const err = await res.json();
+        mostraAlert('alert-reg', 'error', err.message || 'Errore durante la registrazione');
+      }
+    } catch {
+      mostraAlert('alert-reg', 'error', 'Impossibile contattare il server');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Crea account';
+    }
+}
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      if (document.getElementById('panel-login').classList.contains('active')) login();
+      else registrati();
+    }
+  });
+</script>
+
+</body>
+</html>
