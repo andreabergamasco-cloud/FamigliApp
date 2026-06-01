@@ -1,8 +1,8 @@
 {
   "build": {
-    "buildCommand": "npm install -g serve"
+    "buildCommand": "echo 'static site'"
   },
   "deploy": {
-    "startCommand": "serve . -p $PORT"
+    "startCommand": "python3 -m http.server $PORT"
   }
 }
