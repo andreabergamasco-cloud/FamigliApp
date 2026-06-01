@@ -1,4 +1,4 @@
-const API = 'http://localhost:5271/api';
+const API = 'https://genuine-rejoicing-production-751d.up.railway.app/api';
 
 // --- DATA ---
 async function getScadenze() {
