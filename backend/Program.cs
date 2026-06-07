@@ -1,80 +1,48 @@
 using Backend.Data;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
+
+
+Console.WriteLine("=== AVVIO BACKEND ===");
 
 try
 {
-AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
-{
-    Console.WriteLine("ERRORE CRITICO: " + e.ExceptionObject?.ToString());
-};
+    Console.WriteLine("Step 1: Creazione builder");
+    var builder = WebApplication.CreateBuilder(args);
+    
+    Console.WriteLine("Step 2: Configurazione DB");
+    builder.Services.AddDbContext<Backend.Data.AppDbContext>(options =>
+        options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-var builder = WebApplication.CreateBuilder(args);
-
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
+    Console.WriteLine("Step 3: Aggiunta servizi");
+    builder.Services.AddControllers();
+    builder.Services.AddCors(options =>
     {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
-        };
+        options.AddPolicy("Frontend", policy =>
+            policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
     });
 
-builder.Services.AddAuthorization();
-builder.Services.AddControllers();
+    Console.WriteLine("Step 4: Build app");
+    var app = builder.Build();
 
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("Frontend", policy =>
-        policy.WithOrigins(builder.Configuration.GetSection("Cors:Origins").Get<string[]>()!)
-              .AllowAnyHeader()
-              .AllowAnyMethod());
-});
+    Console.WriteLine("Step 5: Configurazione middleware");
+    app.UseCors("Frontend");
+    app.MapControllers();
 
-var app = builder.Build();
-
-app.UseCors("Frontend");
-app.UseAuthentication();
-app.UseAuthorization();
-app.UseStaticFiles(new StaticFileOptions {
-    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
-        Path.Combine(Directory.GetCurrentDirectory(), "uploads")),
-    RequestPath = "/uploads"
-});
-app.MapControllers();
-
-using (var scope = app.Services.CreateScope())
-{
-    try
+    Console.WriteLine("Step 6: EnsureCreated");
+    using (var scope = app.Services.CreateScope())
     {
-        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var db = scope.ServiceProvider.GetRequiredService<Backend.Data.AppDbContext>();
         db.Database.EnsureCreated();
     }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"Errore database: {ex.Message}");
-    }
-}
 
-app.Run();
+    Console.WriteLine("Step 7: Avvio server");
+    app.Run();
 }
 catch (Exception ex)
 {
-    Console.WriteLine("=== ERRORE AVVIO ===");
+    Console.WriteLine("=== CRASH ===");
     Console.WriteLine(ex.GetType().FullName);
     Console.WriteLine(ex.Message);
     Console.WriteLine(ex.StackTrace);
-    throw;
+    Environment.Exit(1);
 }
