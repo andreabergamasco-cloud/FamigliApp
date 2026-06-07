@@ -1,12 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
-<PropertyGroup>
-<PropertyGroup>
+  <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RunAnalyzersDuringBuild>false</RunAnalyzersDuringBuild>
-</PropertyGroup>
-</PropertyGroup>
+  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
