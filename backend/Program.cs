@@ -4,6 +4,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
+AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
+{
+    Console.WriteLine("ERRORE CRITICO: " + e.ExceptionObject?.ToString());
+};
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<AppDbContext>(options =>
