@@ -5,6 +5,6 @@
     "buildCommand": "dotnet restore && dotnet publish -c Release -o out"
   },
   "deploy": {
-    "startCommand": "dotnet out/backend.dll --urls http://0.0.0.0:$PORT"
+    "startCommand": "dotnet out/backend.dll --urls http://0.0.0.0:8080"
   }
 }
