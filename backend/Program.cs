@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
+try
+{
 AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
 {
     Console.WriteLine("ERRORE CRITICO: " + e.ExceptionObject?.ToString());
@@ -67,3 +69,12 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.Run();
+}
+catch (Exception ex)
+{
+    Console.WriteLine("=== ERRORE AVVIO ===");
+    Console.WriteLine(ex.GetType().FullName);
+    Console.WriteLine(ex.Message);
+    Console.WriteLine(ex.StackTrace);
+    throw;
+}
