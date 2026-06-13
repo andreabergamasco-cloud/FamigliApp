@@ -1,35 +1,52 @@
 using Backend.Data;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
-
-Console.WriteLine("=== AVVIO BACKEND ===");
-
-try
-{
-    Console.WriteLine("Step 1: Creazione builder");
 var builder = WebApplication.CreateBuilder(args);
 
-Console.WriteLine("Step 2: Configurazione DB");
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// builder.Services.AddDbContext<AppDbContext>(options =>
-//     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+        };
+    });
 
-Console.WriteLine("Step 3: Aggiunta servizi");
+builder.Services.AddAuthorization();
+builder.Services.AddControllers();
 
-// builder.Services.AddControllers();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("Frontend", policy =>
+        policy.AllowAnyOrigin()
+              .AllowAnyHeader()
+              .AllowAnyMethod());
+});
 
-Console.WriteLine("Step 4: Build app");
 var app = builder.Build();
 
-app.MapGet("/", () => "OK");
+app.UseCors("Frontend");
+app.UseAuthentication();
+app.UseAuthorization();
+app.MapControllers();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.EnsureCreated();
+}
 
 app.Run();
-}
-catch (Exception ex)
-{
-    Console.WriteLine("=== CRASH ===");
-    Console.WriteLine(ex.GetType().FullName);
-    Console.WriteLine(ex.Message);
-    Console.WriteLine(ex.StackTrace);
-    Environment.Exit(1);
-}
