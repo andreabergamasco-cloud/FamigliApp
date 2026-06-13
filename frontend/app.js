@@ -1,4 +1,4 @@
-const API = 'https://genuine-rejoicing-production-751d.up.railway.app/api';
+const API = 'https://famigliapp-backend.onrender.com/api';
 
 // --- DATA ---
 async function getScadenze() {
