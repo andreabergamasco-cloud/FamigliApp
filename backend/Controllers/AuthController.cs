@@ -177,6 +177,15 @@ public async Task<IActionResult> JoinFamiglia([FromBody] JoinFamigliaDto dto)
     return Ok(new { id = famiglia.Id, cognome = famiglia.Cognome });
 }
 
+[HttpPost("reset-password")]
+public async Task<IActionResult> ResetPassword([FromBody] ResetDto dto)
+{
+    var utente = await _db.Utenti.FirstOrDefaultAsync(u => u.Email == dto.Email);
+    if (utente is null) return NotFound();
+    utente.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NuovaPassword);
+    await _db.SaveChangesAsync();
+    return Ok(new { message = "Password aggiornata" });
+}
     private string GeneraToken(Utente utente)
     {
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
@@ -220,3 +229,4 @@ public record RegisterJoinDto(string Nome, string Email, string Password, string
 public record LoginDto(string Email, string Password);
 public record CreaFamigliaDto(int IdUtente, string Cognome);
 public record JoinFamigliaDto(int IdUtente, string Codice);
+public record ResetDto(string Email, string NuovaPassword);
