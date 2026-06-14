@@ -182,7 +182,7 @@ public async Task<IActionResult> ResetPassword([FromBody] ResetDto dto)
 {
     var utente = await _db.Utenti.FirstOrDefaultAsync(u => u.Email == dto.Email);
     if (utente is null) return NotFound();
-    utente.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NuovaPassword);
+    utente.Password = BCrypt.Net.BCrypt.HashPassword(dto.NuovaPassword);
     await _db.SaveChangesAsync();
     return Ok(new { message = "Password aggiornata" });
 }
